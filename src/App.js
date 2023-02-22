@@ -1,36 +1,34 @@
 import Card from "./components/Card/";
 import Drawer from "./components/Drawer";
 import Header from "./components/Header";
+import React from "react";
 
-const arr = [
-  {
-    name: "Мужские Кроссовки Nike Blazer Mid Suede",
-    price: 12999,
-    imgUrl: "/img/boots/1.jpg",
-  },
-  {
-    name: "Мужские Кроссовки Nike Air Max 270",
-    price: 12999,
-    imgUrl: "/img/boots/2.jpg",
-  },
-  {
-    name: "Мужские Кроссовки Nike Blazer Mid Suede",
-    price: 8499,
-    imgUrl: "/img/boots/3.jpg",
-  },
-  {
-    name: "Кроссовки Puma X Aka Boku Future Rider",
-    price: 8999,
-    imgUrl: "/img/boots/4.jpg",
-  },
-];
 
 function App() {
+  const [items, setItems] = React.useState([]);
+  const [cartItems, setCartItems] = React.useState([]);
+  const [cartOpen, setCartOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    fetch("https://63f5d0c259c944921f6706e5.mockapi.io/items")
+  .then((res) => {
+    return res.json();
+  })
+  .then((json) => {
+    setItems(json);
+  });
+  }, []);
+
+  const onAddToCart = (obj) => {
+    setCartItems(prev => [...prev, obj]); 
+  }
+
+  console.log(cartItems);
+
   return (
     <div className="wrapper clear">
-      <Drawer />
-
-      <Header />
+      {cartOpen && <Drawer items={cartItems} onClose={() => setCartOpen(false)}/>}
+      <Header onClickCart={() => setCartOpen(true)} />
 
       <div className="content p-40">
         <div className="d-flex align-center mb-40 justify-between">
@@ -41,13 +39,14 @@ function App() {
           </div>
         </div>
 
-        <div className="d-flex">
-          {arr.map((obj) => (
+        <div className="d-flex flex-wrap">
+          {items.map((item) => (
             <Card
-              title={obj.name}
-              price={obj.price}
-              imgUrl={obj.imgUrl}
-              onClick={() => console.log(obj)}
+              title={item.name}
+              price={item.price}
+              imgUrl={item.imgUrl}
+              onClickFavorite={() => console.log("favorite")}
+              onPlus={(obj) => onAddToCart(obj)}
             />
           ))}
         </div>
