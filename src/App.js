@@ -42,6 +42,7 @@ function App() {
         <div className="d-flex flex-wrap">
           {items.map((item) => (
             <Card
+              key={item.imgUrl + item.price}
               title={item.name}
               price={item.price}
               imgUrl={item.imgUrl}
@@ -51,6 +52,7 @@ function App() {
           ))}
         </div>
       </div>
+      console.log(index + item.price)
     </div>
   );
 }
