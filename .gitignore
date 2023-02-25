@@ -7,6 +7,10 @@
 
 /.vscode
 
+# const Const = { CART: "", ITEMS: "" };
+# export default Const;
+Const.js
+
 # testing
 /coverage
 
