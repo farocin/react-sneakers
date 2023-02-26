@@ -13,22 +13,37 @@ function App() {
   const [favoriteItems, setFavoriteItems] = React.useState([]);
   const [searchValue, setSeacthValue] = React.useState("");
   const [cartOpen, setCartOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    axios.get(Const.ITEMS).then((res) => {
-      setItems(res.data);
-    });
-    axios.get(Const.CART).then((res) => {
-      setCartItems(res.data);
-    });
-    axios.get(Const.FAVORITES).then((res) => {
-      setFavoriteItems(res.data);
-    });
+    async function fetchData() {
+
+      const cartResponse = await axios.get(Const.CART);
+      const favoritesResponse = await axios.get(Const.FAVORITES);
+      const itemsResponse = await axios.get(Const.ITEMS);
+
+      setIsLoading(false);
+
+      setCartItems(cartResponse.data);
+      setFavoriteItems(favoritesResponse.data);
+      setItems(itemsResponse.data);
+    }
+
+    fetchData();
   }, []);
 
-  const onAddToCart = (obj) => {
-    axios.post(Const.CART, obj);
-    setCartItems((prev) => [...prev, obj]);
+  const onAddToCart = async (obj) => {
+    try {
+      if (cartItems.find((item) => Number(item.id) === Number(obj.id))) {
+        setCartItems((prev) => prev.filter((item) => Number(item.id) !== Number(obj.id)));
+        axios.delete(Const.CART + "/" + obj.id);
+      } else {
+        axios.post(Const.CART, obj);
+        setCartItems((prev) => [...prev, obj]);
+      }
+    } catch (error) {
+      alert("Есть ошибка при добавлении в корзину");
+    }
   };
 
   const onRemoveitem = (id) => {
@@ -37,16 +52,16 @@ function App() {
   };
 
   const onAddFavoriteItems = async (obj) => {
-   try {
-    if (favoriteItems.find((favObj) => favObj.id === obj.id)) {
-      axios.delete(Const.FAVORITES + "/" + obj.id);
-    } else {
-      const { data } = await axios.post(Const.FAVORITES, obj);
-      setFavoriteItems((prev) => [...prev, data]);
-    } 
-   } catch (error) {
-    alert("Есть ошибка при добавлении в избранное");
-   }
+    try {
+      if (favoriteItems.find((favObj) => favObj.id === obj.id)) {
+        axios.delete(Const.FAVORITES + "/" + obj.id);
+      } else {
+        const { data } = await axios.post(Const.FAVORITES, obj);
+        setFavoriteItems((prev) => [...prev, data]);
+      }
+    } catch (error) {
+      alert("Есть ошибка при добавлении в избранное");
+    }
   };
 
   const onChangeSearchInput = (event) => {
@@ -71,11 +86,13 @@ function App() {
           extact={true}
           element={
             <Home
+              cartItems={cartItems}
               searchValue={searchValue}
               onChangeSearchInput={onChangeSearchInput}
               items={items}
               onAddFavoriteItems={onAddFavoriteItems}
               onAddToCart={onAddToCart}
+              isLoading={isLoading}
             />
           }
         ></Route>
