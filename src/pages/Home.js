@@ -1,4 +1,7 @@
+import React from "react";
 import Card from "../components/Card/";
+import Skeleton from "../components/Skeleton";
+import AppContext from "../context";
 
 function Home({
   cartItems,
@@ -9,24 +12,7 @@ function Home({
   onAddToCart,
   isLoading,
 }) {
-  const renderItems = () => {
-    const filtredItems = items.filter((item) =>
-      item.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
-    return (isLoading ? [...Array(10)] : filtredItems).map((item) => (
-      <Card
-        key={item.imgUrl + item.price}
-        title={item.name}
-        price={item.price}
-        imgUrl={item.imgUrl}
-        onClickFavorite={onAddFavoriteItems}
-        onPlus={(obj) => onAddToCart(obj)}
-        added={cartItems.some((obj) => Number(obj.id) === Number(item.id))}
-        loading={isLoading}
-      />
-    ));
-  };
-
+  const { isItemAdded } = React.useContext(AppContext);
   return (
     <div className="content p-40">
       <div className="d-flex align-center mb-40 justify-between">
@@ -45,7 +31,33 @@ function Home({
         </div>
       </div>
 
-      <div className="d-flex flex-wrap">{renderItems()}</div>
+      {isLoading ? (
+        <div className="d-flex flex-wrap">
+          {Array(12)
+            .fill(0)
+            .map((_, index) => (
+              <Skeleton key={index} style={{ margin: "0 30px 30px 0" }} />
+            ))}
+        </div>
+      ) : (
+        <div className="d-flex flex-wrap">
+          {items
+            .filter((item) =>
+              item.name.toLowerCase().includes(searchValue.toLowerCase())
+            )
+            .map((item) => (
+              <Card
+                key={item.imgUrl + item.price}
+                title={item.name}
+                price={item.price}
+                imgUrl={item.imgUrl}
+                onClickFavorite={onAddFavoriteItems}
+                onPlus={(obj) => onAddToCart(obj)}
+                added={isItemAdded(item && Number(item.id))}
+              />
+            ))}
+        </div>
+      )}
     </div>
   );
 }
