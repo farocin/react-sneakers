@@ -1,18 +1,18 @@
 import React from "react";
+
 import Card from "../components/Card/";
 import Skeleton from "../components/Skeleton";
-import AppContext from "../context";
 
 function Home({
-  cartItems,
   searchValue,
   onChangeSearchInput,
   items,
   onAddFavoriteItems,
   onAddToCart,
   isLoading,
+  cartItems
 }) {
-  const { isItemAdded } = React.useContext(AppContext);
+
   return (
     <div className="content p-40">
       <div className="d-flex align-center mb-40 justify-between">
@@ -47,13 +47,10 @@ function Home({
             )
             .map((item) => (
               <Card
-                key={item.imgUrl + item.price}
-                title={item.name}
-                price={item.price}
-                imgUrl={item.imgUrl}
+                key={item.id}
+                {...item}
                 onClickFavorite={onAddFavoriteItems}
                 onPlus={(obj) => onAddToCart(obj)}
-                added={isItemAdded(item && Number(item.id))}
               />
             ))}
         </div>

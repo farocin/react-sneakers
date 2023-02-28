@@ -1,26 +1,28 @@
 import React from "react";
+
 import styles from "./Card.module.scss";
+import AppContext from "../../context";
 
 function Card({
   id,
   imgUrl,
-  title,
+  name,
   price,
   onClickFavorite,
   onPlus,
   favorited = false,
-  added = false,
 }) {
-  const [isAdd, setIsAdd] = React.useState(added);
+  const { isItemAdded } = React.useContext(AppContext);
   const [isFavorite, setIsFavorite] = React.useState(favorited);
 
+  const obj = {id, parentId: id, imgUrl, name, price}
+
   const changeIsAdd = () => {
-    onPlus({ id, imgUrl, title, price });
-    setIsAdd(!isAdd);
+    onPlus(obj);
   };
 
   const changeIsFavorite = () => {
-    onClickFavorite({ id, imgUrl, title, price });
+    onClickFavorite(obj);
     setIsFavorite(!isFavorite);
   };
 
@@ -35,7 +37,7 @@ function Card({
             />
           </div>
           <img width="100%" height={135} src={imgUrl} alt="" />
-          <h5>{title}</h5>
+          <h5>{name}</h5>
           <div className="d-flex justify-between align-center">
             <div className="d-flex flex-column">
               <span>Цена:</span>
@@ -43,7 +45,7 @@ function Card({
             </div>
             <img
               className={styles.plus}
-              src={isAdd ? "/img/BtnPlus.svg" : "/img/aBtnPlus.svg"}
+              src={isItemAdded(id) ? "/img/BtnPlus.svg" : "/img/aBtnPlus.svg"}
               alt="Plus"
               onClick={changeIsAdd}
             />

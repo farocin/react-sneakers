@@ -12,21 +12,26 @@ function App() {
   const [items, setItems] = React.useState([]);
   const [cartItems, setCartItems] = React.useState([]);
   const [favoriteItems, setFavoriteItems] = React.useState([]);
-  const [searchValue, setSeacthValue] = React.useState("");
+  const [searchValue, setSearchValue] = React.useState("");
   const [cartOpen, setCartOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function fetchData() {
-      const cartResponse = await axios.get(Const.CART);
-      const favoritesResponse = await axios.get(Const.FAVORITES);
-      const itemsResponse = await axios.get(Const.ITEMS);
+      try {
+        const cartResponse = await axios.get(Const.CART);
+        const favoritesResponse = await axios.get(Const.FAVORITES);
+        const itemsResponse = await axios.get(Const.ITEMS);
 
-      setIsLoading(false);
+        setIsLoading(false);
 
-      setCartItems(cartResponse.data);
-      setFavoriteItems(favoritesResponse.data);
-      setItems(itemsResponse.data);
+        setCartItems(cartResponse.data);
+        setFavoriteItems(favoritesResponse.data);
+        setItems(itemsResponse.data);
+      } catch (error) {
+        setIsLoading(false);
+        console.error(error);
+      }
     }
 
     fetchData();
@@ -34,29 +39,51 @@ function App() {
 
   const onAddToCart = async (obj) => {
     try {
-      if (cartItems.find((item) => Number(item.id) === Number(obj.id))) {
-        setCartItems((prev) =>
-          prev.filter((item) => Number(item.id) !== Number(obj.id))
-        );
-        axios.delete(Const.CART + "/" + obj.id);
+      const findItem = cartItems.find((item) => Number(item.parentId) === Number(obj.id));
+      if (findItem) {
+        setCartItems((prev) => prev.filter((item) => Number(item.parentId) !== Number(obj.id)));
+        await axios.delete(Const.CART + "/" + findItem.id);
       } else {
-        axios.post(Const.CART, obj);
         setCartItems((prev) => [...prev, obj]);
+        const { data } = await axios.post(Const.CART , obj);
+        setCartItems((prev) =>
+          prev.map((item) => {
+            if (item.parentId === data.parentId) {
+              return {
+                ...item,
+                id: data.id,
+              };
+            }
+            return item;
+          }),
+        );
       }
     } catch (error) {
-      alert("Есть ошибка при добавлении в корзину");
+      alert('Ошибка при добавлении в корзину');
+      console.error(error);
     }
   };
 
-  const onRemoveitem = (id) => {
-    axios.delete(Const.CART + "/" + id);
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  const onRemoveitem = async (id) => {
+    try {
+      await axios.delete(Const.CART + "/" + id);
+      setCartItems((prev) =>
+        prev.filter((item) => Number(item.id) !== Number(id))
+      );
+    } catch (error) {
+      alert("Ошибка при удалении товара из корзины");
+    }
   };
 
   const onAddFavoriteItems = async (obj) => {
     try {
-      if (favoriteItems.find((favObj) => favObj.id === obj.id)) {
+      if (
+        favoriteItems.find((favObj) => Number(favObj.id) === Number(obj.id))
+      ) {
         axios.delete(Const.FAVORITES + "/" + obj.id);
+        setFavoriteItems((prev) =>
+          prev.filter((item) => Number(item.id) !== Number(obj.id))
+        );
       } else {
         const { data } = await axios.post(Const.FAVORITES, obj);
         setFavoriteItems((prev) => [...prev, data]);
@@ -67,15 +94,25 @@ function App() {
   };
 
   const onChangeSearchInput = (event) => {
-    setSeacthValue(event.target.value);
+    setSearchValue(event.target.value);
   };
 
   const isItemAdded = (id) => {
-   return cartItems.some((obj) => Number(obj.id) === Number(id));
+    return cartItems.some((obj) => Number(obj.parentId) === Number(id));
   };
 
   return (
-    <AppContext.Provider value={{ items, cartItems, favoriteItems, isItemAdded }}>
+    <AppContext.Provider
+      value={{
+        items,
+        cartItems,
+        favoriteItems,
+        isItemAdded,
+        onAddFavoriteItems,
+        setCartOpen,
+        setCartItems
+      }}
+    >
       <div className="wrapper clear">
         {cartOpen && (
           <Drawer
@@ -104,15 +141,7 @@ function App() {
             }
           ></Route>
 
-          <Route
-            path="/favorites"
-            exact={true}
-            element={
-              <Favorites
-                onAddFavoriteItems={onAddFavoriteItems}
-              />
-            }
-          ></Route>
+          <Route path="/favorites" exact={true} element={<Favorites />}></Route>
         </Routes>
       </div>
     </AppContext.Provider>
