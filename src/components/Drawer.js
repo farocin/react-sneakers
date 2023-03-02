@@ -37,22 +37,29 @@ function Drawer({ onClose, onRemove, items = [] }) {
     setIsOrderLoading(false);
   };
 
+  const scrollableContentStyles = {
+    overflowY: "scroll",
+    maxHeight: "calc(100vh - 300px)",
+    paddingRight: "10px"
+  };
+  
+
   return (
     <div className="overlay">
       <div className="drawer">
         <h2 className="d-flex justify-between mb-30">
           Корзина{" "}
           <img
-            className="cu-p"
+            className="cu-p close-icon"
             src="/img/btnRemove.svg"
             alt="Close"
             onClick={onClose}
           />
         </h2>
-
+        
         {items.length > 0 ? (
           <div className="d-flex flex-column flex">
-            <div className="items">
+            <div className="items scrollable-content" style={scrollableContentStyles}>
               {items.map((obj) => (
                 <div
                   key={obj.id}
@@ -64,7 +71,7 @@ function Drawer({ onClose, onRemove, items = [] }) {
                   ></div>
                   <div className="mr-20 flex">
                     <p className="mb-5">{obj.name}</p>
-                    <b>{obj.price}</b>
+                    <b>{obj.price} руб.</b>
                   </div>
                   <img
                     onClick={() => {
@@ -88,7 +95,7 @@ function Drawer({ onClose, onRemove, items = [] }) {
                 <li className="d-flex">
                   <span>Налог 5%</span>
                   <div></div>
-                  <b>{totalPrice * 0.05} руб.</b>
+                  <b>{(totalPrice * 0.05).toFixed(2)} руб.</b>
                 </li>
               </ul>
               <button

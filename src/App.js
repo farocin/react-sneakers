@@ -7,6 +7,7 @@ import { Routes, Route } from "react-router-dom";
 import Const from "./Const.js";
 import Favorites from "./pages/Favorites";
 import AppContext from "./context";
+import Orders from "./pages/Orders";
 
 function App() {
   const [items, setItems] = React.useState([]);
@@ -19,9 +20,12 @@ function App() {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const cartResponse = await axios.get(Const.CART);
-        const favoritesResponse = await axios.get(Const.FAVORITES);
-        const itemsResponse = await axios.get(Const.ITEMS);
+        const [cartResponse, favoritesResponse, itemsResponse] =
+          await Promise.all([
+            axios.get(Const.CART),
+            axios.get(Const.FAVORITES),
+            axios.get(Const.ITEMS),
+          ]);
 
         setIsLoading(false);
 
@@ -39,13 +43,17 @@ function App() {
 
   const onAddToCart = async (obj) => {
     try {
-      const findItem = cartItems.find((item) => Number(item.parentId) === Number(obj.id));
+      const findItem = cartItems.find(
+        (item) => Number(item.parentId) === Number(obj.id)
+      );
       if (findItem) {
-        setCartItems((prev) => prev.filter((item) => Number(item.parentId) !== Number(obj.id)));
+        setCartItems((prev) =>
+          prev.filter((item) => Number(item.parentId) !== Number(obj.id))
+        );
         await axios.delete(Const.CART + "/" + findItem.id);
       } else {
         setCartItems((prev) => [...prev, obj]);
-        const { data } = await axios.post(Const.CART , obj);
+        const { data } = await axios.post(Const.CART, obj);
         setCartItems((prev) =>
           prev.map((item) => {
             if (item.parentId === data.parentId) {
@@ -55,23 +63,24 @@ function App() {
               };
             }
             return item;
-          }),
+          })
         );
       }
     } catch (error) {
-      alert('Ошибка при добавлении в корзину');
+      alert("Ошибка при добавлении в корзину");
       console.error(error);
     }
   };
 
   const onRemoveitem = async (id) => {
     try {
-      await axios.delete(Const.CART + "/" + id);
       setCartItems((prev) =>
         prev.filter((item) => Number(item.id) !== Number(id))
       );
+      await axios.delete(Const.CART + "/" + id);
     } catch (error) {
       alert("Ошибка при удалении товара из корзины");
+      console.error(error);
     }
   };
 
@@ -83,7 +92,7 @@ function App() {
         axios.delete(Const.FAVORITES + "/" + obj.id);
         setFavoriteItems((prev) =>
           prev.filter((item) => Number(item.id) !== Number(obj.id))
-        );
+        ); 
       } else {
         const { data } = await axios.post(Const.FAVORITES, obj);
         setFavoriteItems((prev) => [...prev, data]);
@@ -110,7 +119,7 @@ function App() {
         isItemAdded,
         onAddFavoriteItems,
         setCartOpen,
-        setCartItems
+        setCartItems,
       }}
     >
       <div className="wrapper clear">
@@ -142,6 +151,8 @@ function App() {
           ></Route>
 
           <Route path="/favorites" exact={true} element={<Favorites />}></Route>
+
+          <Route path="/orders" exact={true} element={<Orders />}></Route>
         </Routes>
       </div>
     </AppContext.Provider>

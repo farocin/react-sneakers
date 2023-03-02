@@ -10,7 +10,6 @@ function Home({
   onAddFavoriteItems,
   onAddToCart,
   isLoading,
-  cartItems
 }) {
 
   return (
@@ -47,6 +46,7 @@ function Home({
             )
             .map((item) => (
               <Card
+
                 key={item.id}
                 {...item}
                 onClickFavorite={onAddFavoriteItems}
