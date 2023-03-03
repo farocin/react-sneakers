@@ -17,6 +17,7 @@ function App() {
   const [cartOpen, setCartOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
+
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -89,10 +90,10 @@ function App() {
       if (
         favoriteItems.find((favObj) => Number(favObj.id) === Number(obj.id))
       ) {
-        axios.delete(Const.FAVORITES + "/" + obj.id);
+        await axios.delete(`${Const.FAVORITES}/${obj.id}`);
         setFavoriteItems((prev) =>
           prev.filter((item) => Number(item.id) !== Number(obj.id))
-        ); 
+        );
       } else {
         const { data } = await axios.post(Const.FAVORITES, obj);
         setFavoriteItems((prev) => [...prev, data]);
@@ -101,6 +102,18 @@ function App() {
       alert("Есть ошибка при добавлении в избранное");
     }
   };
+
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await axios.get(Const.FAVORITES);
+        setFavoriteItems(data);
+      } catch (error) {
+        alert("Не удалось загрузить данные об избранных товарах");
+      }
+    }
+    fetchData();
+  }, []);
 
   const onChangeSearchInput = (event) => {
     setSearchValue(event.target.value);

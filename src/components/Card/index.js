@@ -24,7 +24,6 @@ function Card({
   const changeIsFavorite = () => {
     onClickFavorite(obj);
     setIsFavorite(!isFavorite);
-
   };
   
   return (
